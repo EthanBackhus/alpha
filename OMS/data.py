@@ -100,8 +100,9 @@ class HistoricCSVDataHandler(DataHandler):
             self.symbol_data[s] = pd.io.parsers.read_csv(
                 os.path.join(self.csv_dir, '%s.csv' % s),
                 header=0, index_col=0, parse_dates=True,
-                names=['datetime', 'open', 'high', 'low', 'close', 'volume', 'adj_close']
-            ).sort()
+                #names=['datetime', 'open', 'high', 'low', 'close', 'volume', 'adj_close']
+                names=['timestamp', 'open', 'high', 'low', 'close', 'volume']
+            )
 
             # Combine the index to pad forward values
             if comb_index is None:
@@ -147,7 +148,7 @@ class HistoricCSVDataHandler(DataHandler):
             return bars_list[-N:]
         
 
-    def get_latest_bar_datetime():    
+    def get_latest_bar_datetime(self, symbol):    
         # Returns a Python datetime object for the last bar.
             
         try:
@@ -187,7 +188,8 @@ class HistoricCSVDataHandler(DataHandler):
         # Pushes the latest bar to the latest_symbol_data structure for all symbols in the symbol list.
         for s in self.symbol_list:
             try:
-                bar = next(self._get_new_bar(s))
+                #bar = next(self._get_new_bar(s))
+                bar = next(self.get_new_bar(s))
             except StopIteration:
                 self.continue_backtest = False
             else:

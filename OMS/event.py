@@ -1,5 +1,13 @@
 from __future__ import print_function
 
+import logging
+logging.basicConfig(
+    filename='app.log',
+    level=logging.INFO,
+    filemode='w',
+    format='%(message)s'  # Log only the message without the INFO:root: prefix
+)
+
 class Event(object):
     pass
 
@@ -16,7 +24,7 @@ class SignalEvent(Event):
     # Handles the event of sending a Signal from a Strategy object.
     # This is received by a Portfolio object and acted upon.
 
-    def __init__(self, strategy_id, symbol, datetime, signal_type, strength):
+    def __init__(self, strategy_id, symbol, datetime, signal_type, strength, stop_loss, take_profit):
         """
         Initialises the SignalEvent.
         Parameters:
@@ -34,11 +42,13 @@ class SignalEvent(Event):
         self.datetime = datetime
         self.signal_type = signal_type
         self.strength = strength
+        self.stop_loss = stop_loss
+        self.take_profit = take_profit
 
 
 
 class OrderEvent(Event):
-    def __init__(self, symbol, order_type, quantity, direction):
+    def __init__(self, symbol, order_type, quantity, direction, stop_loss, take_profit):
         """
         Initialises the order type, setting whether it is
         a Market order ('MKT') or Limit order ('LMT'), has
@@ -55,6 +65,9 @@ class OrderEvent(Event):
         self.order_type = order_type
         self.quantity = quantity
         self.direction = direction
+        self.stop_loss = stop_loss
+        self.take_profit = take_profit
+
 
 
 class FillEvent(Event):

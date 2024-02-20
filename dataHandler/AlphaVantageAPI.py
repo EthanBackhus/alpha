@@ -8,9 +8,12 @@ from datetime import datetime, timedelta
 
 #api_key = "965E954TXP8KEFW0"
 
-API_KEY = "965E954TXP8KEFW0"
+#API_KEY = "965E954TXP8KEFW0"
+API_KEY = "59G5C0MEAHRCBFQJ"
+
+
 symbol = "SPY"  # Example stock symbol (Apple Inc.)
-interval = "5min"  # 5-minute interval for intraday data
+interval = "60min"  # 5-minute interval for intraday data
 #month="2023-11" 
 endpoint = f"https://www.alphavantage.co/query"
 filePath = "data/SPY"
@@ -67,7 +70,7 @@ class DataHandler(object):
             print(f'Error: {priceDataRequest.status_code} - {priceDataRequest.text}')
 
 
-    def getPriceDataCSV(self):
+    def getPriceDataCSV(interval, currentMonth):
         response = requests.get(endpoint, params=getPriceParamsCSV(symbol, interval, currentMonth, API_KEY))
         data = response.text
 
@@ -133,25 +136,49 @@ class DataHandler(object):
         mpf.show()
 
 
+    def combineYearOfDataFrames(symbol, interval, year):
+        df1 = pd.read_csv(f'csv_dir/{symbol}_{interval}_{year}-01.csv')
+        df2 = pd.read_csv(f'csv_dir/{symbol}_{interval}_{year}-02.csv')
+        df3 = pd.read_csv(f'csv_dir/{symbol}_{interval}_{year}-03.csv')
+        df4 = pd.read_csv(f'csv_dir/{symbol}_{interval}_{year}-04.csv')
+        df5 = pd.read_csv(f'csv_dir/{symbol}_{interval}_{year}-05.csv')
+        df6 = pd.read_csv(f'csv_dir/{symbol}_{interval}_{year}-06.csv')
+        df7 = pd.read_csv(f'csv_dir/{symbol}_{interval}_{year}-07.csv')
+        df8 = pd.read_csv(f'csv_dir/{symbol}_{interval}_{year}-08.csv')
+        df9 = pd.read_csv(f'csv_dir/{symbol}_{interval}_{year}-09.csv')
+        df10 = pd.read_csv(f'csv_dir/{symbol}_{interval}_{year}-10.csv')
+        df11 = pd.read_csv(f'csv_dir/{symbol}_{interval}_{year}-11.csv')
+        df12 = pd.read_csv(f'csv_dir/{symbol}_{interval}_{year}-12.csv')
+
+        # Concatenate the DataFrames
+        combined_df = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9, df10, df11, df12])
+
+        # Sort the combined DataFrame by the 'timestamp' column
+        combined_df.sort_values('timestamp', inplace=True)
+
+        # Save the combined DataFrame to a new CSV file
+        combined_df.to_csv(f'csv_dir/{symbol}_{interval}_{year}.csv', index=False)
+
+
 
     #def previousMonthUntilJan2000(startingMonth, counter):
     #    current_date = datetime.strptime(startingMonth, '%Y-%m')
-#
+    #
     #    while current_date >= datetime(2000, 1, 1) and counter < 23:
     #        counter = counter + 1
     #        print("Going to next month: " + str(current_date))
     #        yield current_date.strftime('%Y-%m')
     #        current_date -= timedelta(days=current_date.day)
     #        current_date -= timedelta(days=1)
-#
-#
-#
+    #
+    #
+    #
     #def processMonths(starting_month):
     #    counter = 0
     #    for month in previousMonthUntilJan2000(starting_month, counter):
     #        # Call another function here passing the month
     #        getPriceData(symbol, interval, month, False)
-#
+    #
 
 
 def getPriceParams(symbol, interval, month, API_KEY):
@@ -208,3 +235,9 @@ def getVWAPParams(symbol, interval, API_KEY):
 
 def get_data_handler_constructor_args():
     return symbol, interval, endpoint, filePath
+
+
+
+
+
+

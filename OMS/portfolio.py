@@ -12,6 +12,14 @@ import pandas as pd
 from event import FillEvent, OrderEvent
 from performance import create_sharpe_ratio, create_drawdowns
 
+import logging
+logging.basicConfig(
+    filename='app.log',
+    level=logging.INFO,
+    filemode='w',
+    format='%(message)s'  # Log only the message without the INFO:root: prefix
+)
+
 
 class Portfolio(object):
     """
@@ -79,10 +87,11 @@ class Portfolio(object):
     
     
     def update_timeindex(self, event):
-        # Adds a new record to the positiosn matrix or the current market data bar
-        # This reflects the PREVIOUS bar, i.e. all current market data at this stage is known (OHLCV)
-
-        # Makes use of a MarketEvent from the events queue
+        """
+        Adds a new record to the positiosn matrix or the current market data bar
+        This reflects the PREVIOUS bar, i.e. all current market data at this stage is known (OHLCV)
+        Makes use of a MarketEvent from the events queue
+        """
 
         latest_datetime = self.bars.get_latest_bar_datetime(
             self.symbol_list[0]
@@ -110,7 +119,7 @@ class Portfolio(object):
         for s in self.symbol_list:
             # Approximation to the real value
             market_value = self.current_positions[s] * \
-                self.bars.get_latest_bar_value(s, "adj_close")
+                self.bars.get_latest_bar_value(s, "close")  # ORIGINAL: self.bars.get_latest_bar_value(s, "adj_close")
             dh[s] = market_value
             dh['total'] += market_value
 
@@ -145,7 +154,7 @@ class Portfolio(object):
             fill_dir = -1
 
         # Update holdings list with new quantities
-        fill_cost = self.bars.get_latest_bar_value(fill.symbol, "adj_close")
+        fill_cost = self.bars.get_latest_bar_value(fill.symbol, "close")
         cost = fill_dir * fill_cost * fill.quantity
         self.current_holdings[fill.symbol] += cost
         self.current_holdings['commission'] += fill.commission
@@ -159,40 +168,45 @@ class Portfolio(object):
         if event.type == 'FILL':
             self.update_positions_from_fill(event)
             self.update_holdings_from_fill(event)
+    
 
+    def generate_order(self, signal):
+        """
+        Files an order object as a constant quantity sizing of a signal object, with risk managmenet but not position sizing considerations.
+        Will add those in the future
+        """
 
-    def generate_naive_order(self, signal):
-        # Simply files an Order object as a constant quantity sizing of the signal object, without risk management or position sizing considerations.
-        # Parameters: signal - The tuple containing Signal information.
-        
         order = None
-
         symbol = signal.symbol
         direction = signal.signal_type
         strength = signal.strength
+        stop_loss = signal.stop_loss
+        take_profit = signal.take_profit
 
         mkt_quantity = 100
         cur_quantity = self.current_positions[symbol]
         order_type = 'MKT'
 
         if direction == 'LONG' and cur_quantity == 0:
-            order = OrderEvent(symbol, order_type, mkt_quantity, 'BUY')
+            order = OrderEvent(symbol, order_type, mkt_quantity, 'BUY', stop_loss, take_profit)
         if direction == 'SHORT' and cur_quantity == 0:
-            order = OrderEvent(symbol, order_type, mkt_quantity, 'SELL')
+            order = OrderEvent(symbol, order_type, mkt_quantity, 'SELL', stop_loss, take_profit)
         if direction == 'EXIT' and cur_quantity > 0:
-            order = OrderEvent(symbol, order_type, abs(cur_quantity), 'SELL')
+            order = OrderEvent(symbol, order_type, abs(cur_quantity), 'SELL', stop_loss, take_profit)
         if direction == 'EXIT' and cur_quantity < 0:
-            order = OrderEvent(symbol, order_type, abs(cur_quantity), 'BUY')
+            order = OrderEvent(symbol, order_type, abs(cur_quantity), 'BUY', stop_loss, take_profit)
 
         return order
-    
 
-    def update_signal(self, event):
-        # Acts on a SignalEvent to generate new orders based on the portfolio logic.
-    
+
+    def update_signal(self, event, stop_loss, take_profit):
+        """
+        Acts on a SignalEvent to generate new orders based on the portfolio logic.
+        """
         if event.type == 'SIGNAL':
-            order_event = self.generate_naive_order(event)
-            self.events.put(order_event)
+            order_event_with_sltp = self.generate_order(event, stop_loss, take_profit)
+            self.events.put(order_event_with_sltp)
+
 
 
 

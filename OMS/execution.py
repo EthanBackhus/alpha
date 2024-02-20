@@ -6,7 +6,13 @@ try:
 except ImportError:
     import queue
 from event import FillEvent, OrderEvent
-
+import logging
+logging.basicConfig(
+    filename='app.log',
+    level=logging.INFO,
+    filemode='w',
+    format='%(message)s'  # Log only the message without the INFO:root: prefix
+)
 
 
 class ExecutionHandler(object):
@@ -48,13 +54,24 @@ class SimulatedExecutionHandler(ExecutionHandler):
         
         self.events = events
 
+
+
+    #def execute_order(self, event):
+    #    """
+    #    Converts order objects into fill objects IF the stop loss and take profit has been hit, without any latency,
+    #    slippage, or fill ratio problems
+    #    """
+    #    if(event.type == 'ORDER'):
+            
+
     def execute_order(self, event):
         # Simply converts Order objects into Fill objects naively, i.e. without any latency, slippage or fill ratio problems.
         # Parameters: event - Contains an Event object with order information.
-    
+
         if event.type == 'ORDER':
             fill_event = FillEvent(
                 datetime.datetime.utcnow(), event.symbol,
                 'ARCA', event.quantity, event.direction, None   
             )
+            logging.info(f"Event {event.type} was executed with symbol {event.symbol} quantity {event.quantity} in direction {event.direction}")
             self.events.put(fill_event)

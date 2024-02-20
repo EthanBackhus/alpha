@@ -26,7 +26,6 @@ class Strategy(object):
 
     @abstractmethod
     def calculate_signals(self):
-        """
-        Provides the mechanisms to calculate the list of signals.
-        """
+        # Provides the mechanisms to calculate the list of signals.
+        
         raise NotImplementedError("Should implement calculate_signals()")

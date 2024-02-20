@@ -3,8 +3,8 @@ from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
 
 
-apiKey = "PKCHE8CZV9F5L2TOHZYM"
-secret = "OgqQ3agnjOPDNs4xUHidP68zPBdRABMwwpXqDgpb"
+apiKey = "PK5MR88UMQBJQD0XQTAA"
+secret = "NRmXCNwMM0EfIfxuTkiKV5cpNs7jtgUCTfTPJ4Ej"
 
 
 def getApiKey():

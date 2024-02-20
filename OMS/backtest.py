@@ -6,6 +6,13 @@ try:
 except ImportError:
     import queue
 import time
+import logging
+logging.basicConfig(
+    filename='app.log',
+    level=logging.INFO,
+    filemode='w',
+    format='%(message)s'  # Log only the message without the INFO:root: prefix
+)
 
 
 
@@ -84,6 +91,8 @@ class Backtest(object):
                     break
                 else:
                     if event is not None:
+                        logging.info(f"Event {event.type} captured at {i}")
+
                         if event.type == 'MARKET':
                             self.strategy.calculate_signals(event)
                             self.portfolio.update_timeindex(event)
